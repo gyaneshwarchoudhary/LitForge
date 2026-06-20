@@ -1,0 +1,27 @@
+from fastapi import FastAPI
+
+from app.api.routers.auth import router as auth_router
+from app.api.routers.documents import router as documents_router
+
+app = FastAPI(
+    title="Book Helper API",
+    description="Backend API for the Book Helper application.",
+    version="0.1.0",
+)
+
+# ── Routers ───────────────────────────────────────────────────
+app.include_router(auth_router)
+app.include_router(documents_router)
+
+
+# ── Health check ──────────────────────────────────────────────
+
+@app.get("/")
+def home():
+    return {"message": "Welcome to the Book Helper API"}
+
+
+@app.get("/health", tags=["Health"])
+def health_check():
+    """Simple health-check endpoint."""
+    return {"status": "ok"}
