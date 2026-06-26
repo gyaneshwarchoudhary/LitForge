@@ -13,6 +13,9 @@ class DocumentRead(BaseModel):
     filename: str
     file_size: int
     content_type: str
+    total_pages: int | None = None
+    total_chunks: int | None = None
+    processing_status: str
     created_at: datetime
 
 
@@ -25,5 +28,8 @@ class DocumentUploadResponse(BaseModel):
     filename: str
     file_size: int
     content_type: str
+    total_pages: int | None = None
+    total_chunks: int | None = None
+    processing_status: str
     created_at: datetime
-    message: str = "File uploaded successfully"
+    message: str = "File uploaded and processed successfully"

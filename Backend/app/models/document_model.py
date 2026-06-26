@@ -30,6 +30,11 @@ class Document(Base):
     content_type: Mapped[str] = mapped_column(
         String(100), nullable=False, default="application/pdf"
     )
+    total_pages: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total_chunks: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    processing_status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="pending"
+    )  # pending | processing | completed | failed
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

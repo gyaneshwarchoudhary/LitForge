@@ -18,5 +18,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
+    # ── Pinecone ──────────────────────────────────────────────
+    PINECONE_API_KEY: str
+    PINECONE_INDEX_NAME: str = "book-helper"
+
+    # ── Google Gemini Embeddings ──────────────────────────────
+    GOOGLE_API_KEY: str
+
 
 settings = Settings()

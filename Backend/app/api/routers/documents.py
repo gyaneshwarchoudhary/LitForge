@@ -5,7 +5,11 @@ from app.api.dependecies import get_current_user
 from app.core.database import get_db
 from app.models.user_model import User
 from app.schema.document_schema import DocumentRead, DocumentUploadResponse
-from app.services.document_service import get_user_documents, save_document
+from app.services.document_service import (
+    get_user_documents,
+    save_document,
+    process_and_store_vectors,
+)
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -29,15 +33,24 @@ async def upload_document(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Upload a PDF file. Only `.pdf` files between 1 MB and 50 MB are accepted."""
-   
+    """
+    Upload a PDF file. Only `.pdf` files between 1 MB and 50 MB are accepted.
+
+    Pipeline:
+      1. Validate file type & size
+      2. Save to disk + create DB record (PostgreSQL)
+      3. Extract text using PyMuPDF
+      4. Hierarchical chunking (document → section → paragraph)
+      5. Embed via Google Gemini & upsert to Pinecone
+    """
+
     # Validate content type
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only PDF files are allowed.",
         )
-    
+
     # Read file content
     contents = await file.read()
     file_size = len(contents)
@@ -55,6 +68,7 @@ async def upload_document(
             detail=f"File too large. Maximum size is 50 MB, got {file_size / (1024*1024):.2f} MB.",
         )
 
+    # Step 1: Save to PostgreSQL + disk
     document = save_document(
         db=db,
         user_id=current_user.id,
@@ -63,11 +77,27 @@ async def upload_document(
         content_type=file.content_type,
     )
 
+    # Step 2: Extract → Chunk → Embed → Store in Pinecone
+    try:
+        document = process_and_store_vectors(
+            db=db,
+            document=document,
+            file_bytes=contents,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"File saved but vector processing failed: {str(exc)}",
+        )
+
     return DocumentUploadResponse(
         id=document.id,
         filename=document.filename,
         file_size=document.file_size,
         content_type=document.content_type,
+        total_pages=document.total_pages,
+        total_chunks=document.total_chunks,
+        processing_status=document.processing_status,
         created_at=document.created_at,
     )
 
@@ -86,5 +116,3 @@ def list_my_documents(
 ):
     """Return all PDF documents belonging to the authenticated user."""
     return get_user_documents(db, current_user.id)
-
-
