@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.dependecies import get_current_user
@@ -7,8 +7,8 @@ from app.models.user_model import User
 from app.schema.document_schema import DocumentRead, DocumentUploadResponse
 from app.services.document_service import (
     get_user_documents,
+    process_document_in_background,
     save_document,
-    process_and_store_vectors,
 )
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -25,10 +25,11 @@ ALLOWED_CONTENT_TYPES = {"application/pdf"}
 @router.post(
     "/upload",
     response_model=DocumentUploadResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_202_ACCEPTED,
     summary="Upload a PDF document (1–50 MB)",
 )
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -39,9 +40,8 @@ async def upload_document(
     Pipeline:
       1. Validate file type & size
       2. Save to disk + create DB record (PostgreSQL)
-      3. Extract text using PyMuPDF
-      4. Hierarchical chunking (document → section → paragraph)
-      5. Embed via Google Gemini & upsert to Pinecone
+      3. Queue text extraction, chunking, embedding, and Pinecone upsert
+      4. Track progress using `processing_status`
     """
 
     # Validate content type
@@ -77,18 +77,12 @@ async def upload_document(
         content_type=file.content_type,
     )
 
-    # Step 2: Extract → Chunk → Embed → Store in Pinecone
-    try:
-        document = process_and_store_vectors(
-            db=db,
-            document=document,
-            file_bytes=contents,
-        )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"File saved but vector processing failed: {str(exc)}",
-        )
+    # Step 2: Process asynchronously so the request returns immediately
+    background_tasks.add_task(
+        process_document_in_background,
+        document.id,
+        contents,
+    )
 
     return DocumentUploadResponse(
         id=document.id,
@@ -99,6 +93,7 @@ async def upload_document(
         total_chunks=document.total_chunks,
         processing_status=document.processing_status,
         created_at=document.created_at,
+        message="File uploaded successfully. Vector processing started in background.",
     )
 
 
