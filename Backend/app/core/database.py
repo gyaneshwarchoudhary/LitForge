@@ -1,23 +1,25 @@
+from collections.abc import Generator
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-from app.core.config import settings
+from app.core.config import get_settings
 
-engine = create_engine(settings.DATABASE_URL, echo=False)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+settings = get_settings()
 
 
 class Base(DeclarativeBase):
-    """Declarative base for all SQLAlchemy models."""
-
     pass
 
 
-def get_db():
-    """FastAPI dependency that yields a database session."""
+engine = create_engine(settings.database_url, pool_pre_ping=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def get_db() -> Generator:
     db = SessionLocal()
     try:
+        print("Database session opened")
         yield db
     finally:
         db.close()
