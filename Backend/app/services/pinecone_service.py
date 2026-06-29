@@ -148,6 +148,41 @@ def upsert_chunks_to_pinecone(chunks: list[Chunk]) -> int:
     return total
 
 
+# ── Search ────────────────────────────────────────────────────
+
+
+def search_chunks(
+    question: str,
+    document_id: int,
+    user_id: int,
+    top_k: int = 5,
+) -> list[dict]:
+    """Embed the question and return the top-k matching chunks for a document."""
+    index = _get_index()
+    client = _get_gemini_client()
+
+    embeddings = _embed_batch_with_retry(client, [question])
+    query_vector = embeddings[0]
+
+    results = index.query(
+        vector=query_vector,
+        top_k=top_k,
+        filter={"document_id": {"$eq": document_id}, "user_id": {"$eq": user_id}},
+        include_metadata=True,
+    )
+
+    chunks = []
+    for match in results.matches:
+        meta = match.metadata or {}
+        chunks.append({
+            "text": meta.get("text", ""),
+            "score": match.score,
+            "chunk_index": meta.get("chunk_index", 0),
+            "title": meta.get("title", ""),
+        })
+    return chunks
+
+
 # ── Delete ────────────────────────────────────────────────────
 
 
