@@ -16,4 +16,9 @@ class ChunkResult(BaseModel):
 class QueryResponse(BaseModel):
     document_id: int
     question: str
+    answer: str
+    profile_used: bool
+    profile_context: str
+    retrieved_context: str
+    combined_context: str
     results: list[ChunkResult]

@@ -25,5 +25,8 @@ class Settings(BaseSettings):
     # ── Google Gemini Embeddings ──────────────────────────────
     GOOGLE_API_KEY: str
 
+    # ── Google Gemini LLM ─────────────────────────────────────
+    GOOGLE_LLM_API_KEY: str
+
 
 settings = Settings()
