@@ -23,9 +23,9 @@ def query_document_endpoint(
 ):
     """
     Embed the question, search Pinecone scoped to the given document,
-    and return the most relevant chunks.
+    inject user profile context, and return the combined context + top chunks.
     """
-    results = query_document(
+    result = query_document(
         db=db,
         document_id=document_id,
         user_id=current_user.id,
@@ -33,20 +33,16 @@ def query_document_endpoint(
         top_k=body.top_k,
     )
 
-    if results is None:
+    if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document not found or does not belong to you.",
         )
 
-    if results == []:
+    if result.get("status") == "not_ready":
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Document is not ready for querying. Check processing_status.",
         )
 
-    return QueryResponse(
-        document_id=document_id,
-        question=body.question,
-        results=results,
-    )
+    return QueryResponse(**result)
