@@ -28,5 +28,9 @@ class Settings(BaseSettings):
     # ── Google Gemini LLM ─────────────────────────────────────
     GOOGLE_LLM_API_KEY: str
 
+    # ── Conversation Memory ───────────────────────────────────
+    CONVERSATION_MAX_TURNS: int = 6
+    CONVERSATION_MAX_HISTORY_CHARS: int = 4000
+
 
 settings = Settings()
