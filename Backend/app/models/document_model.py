@@ -41,6 +41,7 @@ class Document(Base):
 
     # relationship back to user
     owner = relationship("User", back_populates="documents")
+    conversations = relationship("Conversation", back_populates="document", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Document id={self.id} filename={self.filename!r} user_id={self.user_id}>"

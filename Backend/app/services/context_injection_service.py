@@ -1,8 +1,9 @@
 """
-Assembles the three-part context passed to the LLM:
+Assembles the four-part context passed to the LLM:
   1. User profile (personalization)
   2. Retrieved chunks (Pinecone results)
-  3. The raw question
+  3. Conversation history (recent prior turns)
+  4. The raw question
 """
 
 from app.models.user_profile_model import UserProfile
@@ -60,6 +61,7 @@ def build_combined_context(
     profile: UserProfile | None,
     chunks: list[dict],
     question: str,
+    history_text: str = "",
 ) -> dict:
     """Return profile_used, profile_context, retrieved_context, combined_context."""
     profile_used, profile_context = _build_profile_context(profile)
@@ -70,6 +72,8 @@ def build_combined_context(
         sections.append(profile_context)
     if retrieved_context:
         sections.append(retrieved_context)
+    if history_text:
+        sections.append(history_text)
     sections.append(f"## User Question\n{question}")
 
     return {
