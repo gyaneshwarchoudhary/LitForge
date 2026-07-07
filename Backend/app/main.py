@@ -8,7 +8,6 @@ from app.api.routers.user_profile import router as user_profile_router
 app = FastAPI(
     title="Book Helper API",
     description="Backend API for the Book Helper application.",
-    version="0.1.0",
 )
 
 # ── Routers ───────────────────────────────────────────────────
@@ -19,6 +18,7 @@ app.include_router(user_profile_router)
 
 
 # ── Health check ──────────────────────────────────────────────
+
 
 @app.get("/")
 def home():
