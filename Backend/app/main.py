@@ -8,16 +8,19 @@ from app.api.routers.user_profile import router as user_profile_router
 app = FastAPI(
     title="Book Helper API",
     description="Backend API for the Book Helper application.",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
-# ── Routers ───────────────────────────────────────────────────
+# Routers
 app.include_router(auth_router)
 app.include_router(documents_router)
 app.include_router(query_router)
 app.include_router(user_profile_router)
 
 
-# ── Health check ──────────────────────────────────────────────
+# Health check
 
 
 @app.get("/")
