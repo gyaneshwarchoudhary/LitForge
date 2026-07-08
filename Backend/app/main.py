@@ -14,6 +14,7 @@ app = FastAPI(
 )
 
 # Routers
+
 app.include_router(auth_router)
 app.include_router(documents_router)
 app.include_router(query_router)
