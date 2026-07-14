@@ -465,6 +465,7 @@ function Testimonials() {
 }
 
 // ─── Pricing ──────────────────────────────────────────────────────────────────
+/*
 function Pricing() {
   const plans = [
     {
@@ -582,6 +583,10 @@ function Pricing() {
   );
 }
 
+
+
+
+*/
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 function FinalCTA() {
   return (
@@ -637,7 +642,7 @@ export default function Home() {
         <FeaturesSection />
         <HowItWorks />
         <Testimonials />
-        <Pricing />
+        {/* <Pricing /> */}
         <FinalCTA />
       </main>
       <Footer />

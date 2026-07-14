@@ -2,9 +2,10 @@ import React from "react";
 import Link from "next/link";
 
 const footerLinks = {
-  Product: ["Features", "How It Works", "Pricing", "Changelog", "Roadmap"],
-  Company: ["About", "Blog", "Careers", "Press", "Contact"],
-  Legal: ["Privacy Policy", "Terms of Service", "Cookie Policy"],
+  // Product: ["Features", "How It Works", "Pricing", "Changelog", "Roadmap"],
+  Product: ["Features", "How It Works"],
+  Company: ["About", "Blog"],
+  Legal: ["Privacy Policy", "Terms of Service",],
   Social: ["Twitter / X", "LinkedIn", "GitHub", "Discord"],
 };
 
