@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
+// import axios from "axios";
 
 export const metadata: Metadata = {
   title: "Sign In - LitForge",
@@ -8,6 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
+
+
   return (
     <div className="min-h-screen bg-[#0B0B0D] flex">
       {/* Left: Form */}
@@ -57,12 +60,7 @@ export default function LoginPage() {
                 <label className="text-xs font-semibold text-[#94948E] uppercase tracking-wider">
                   Password
                 </label>
-                <a
-                  href="#"
-                  className="text-xs text-[#F59E0B] hover:text-[#ffc174] transition-colors"
-                >
-                  Forgot password?
-                </a>
+
               </div>
               <input
                 type="password"
@@ -75,21 +73,21 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-[#F59E0B] text-[#1a1000] py-3.5 rounded-xl font-semibold text-sm hover:bg-[#ffc174] transition-all duration-300 hover:scale-[1.02] mt-2 glow-amber"
+              className="w-full bg-[#F59E0B] text-[#1a1000] py-3.5 rounded-xl font-semibold text-sm hover:bg-[#ffc174] transition-all duration-300 hover:scale-[1.02] mt-2 glow-amber cursor-pointer"
             >
               Sign In →
             </button>
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
+          {/* <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-[#262626]" />
             <span className="text-xs text-[#94948E]">or continue with</span>
             <div className="flex-1 h-px bg-[#262626]" />
-          </div>
+          </div>  */}
 
-          {/* OAuth buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* /* OAuth buttons */}
+          {/* <div className="grid grid-cols-2 gap-3">
             <button
               id="google-signin"
               className="flex items-center justify-center gap-2 border border-[#262626] bg-[#161618] text-[#F5F5F0] py-3 rounded-xl text-sm font-medium hover:border-[#F59E0B]/30 hover:bg-[#1c1b1d] transition-all duration-200"
@@ -112,6 +110,7 @@ export default function LoginPage() {
               GitHub
             </button>
           </div>
+          */}
 
           <p className="text-center text-sm text-[#94948E] mt-8">
             Don&apos;t have an account?{" "}

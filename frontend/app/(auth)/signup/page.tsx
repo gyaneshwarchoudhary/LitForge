@@ -89,31 +89,18 @@ export default function SignupPage() {
           </div>
 
           <form className="flex flex-col gap-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-[#94948E] uppercase tracking-wider">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  id="first-name"
-                  name="firstName"
-                  placeholder="Alex"
-                  className="w-full bg-[#161618] border border-[#262626] text-[#F5F5F0] placeholder-[#353437] rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30 transition-all duration-200"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-[#94948E] uppercase tracking-wider">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  id="last-name"
-                  name="lastName"
-                  placeholder="Rivera"
-                  className="w-full bg-[#161618] border border-[#262626] text-[#F5F5F0] placeholder-[#353437] rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30 transition-all duration-200"
-                />
-              </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#94948E] uppercase tracking-wider">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="full-name"
+                name="fullName"
+                placeholder="Alex"
+                className="w-full bg-[#161618] border border-[#262626] text-[#F5F5F0] placeholder-[#353437] rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30 transition-all duration-200"
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -170,14 +157,14 @@ export default function SignupPage() {
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
+          {/* <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-[#262626]" />
             <span className="text-xs text-[#94948E]">or sign up with</span>
             <div className="flex-1 h-px bg-[#262626]" />
-          </div>
+          </div> */}
 
           {/* OAuth buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* <div className="grid grid-cols-2 gap-3">
             <button
               id="google-signup"
               className="flex items-center justify-center gap-2 border border-[#262626] bg-[#161618] text-[#F5F5F0] py-3 rounded-xl text-sm font-medium hover:border-[#F59E0B]/30 hover:bg-[#1c1b1d] transition-all duration-200"
@@ -199,7 +186,7 @@ export default function SignupPage() {
               </svg>
               GitHub
             </button>
-          </div>
+          </div> */}
 
           <p className="text-center text-sm text-[#94948E] mt-8">
             Already have an account?{" "}

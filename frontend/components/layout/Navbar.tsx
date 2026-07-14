@@ -15,11 +15,10 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled
-          ? "glass-nav shadow-lg"
-          : "bg-transparent"
-      }`}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled
+        ? "glass-nav shadow-lg"
+        : "bg-transparent"
+        }`}
     >
       <div className="flex justify-between items-center px-6 md:px-12 py-4 max-w-[1200px] mx-auto">
         {/* Logo */}
@@ -37,7 +36,7 @@ const Navbar = () => {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-          {["Features", "How It Works", "Pricing", "Blog"].map((item) => (
+          {["Features", "How It Works"].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/ /g, "-")}`}
@@ -79,7 +78,7 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden glass-nav border-t border-[#262626] px-6 py-4 flex flex-col gap-4">
-          {["Features", "How It Works", "Pricing", "Blog"].map((item) => (
+          {["Features", "How It Works", "Blog"].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/ /g, "-")}`}
