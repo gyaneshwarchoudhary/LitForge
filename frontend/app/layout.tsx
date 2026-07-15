@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,6 +50,22 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col bg-[#0B0B0D] text-[#F5F5F0]">
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "#161618",
+              border: "1px solid #262626",
+              color: "#F5F5F0",
+              borderRadius: "12px",
+              fontSize: "0.875rem",
+            },
+            classNames: {
+              success: "!border-[#F59E0B]/40",
+              error: "!border-red-500/40",
+            },
+          }}
+        />
         {children}
       </body>
     </html>
