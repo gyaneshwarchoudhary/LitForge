@@ -9,6 +9,8 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+    # ── Origin ──────────────────────────────────────────────────
+    FRONTEND_URL: str
 
     # ── Database ──────────────────────────────────────────────
     DATABASE_URL: str
