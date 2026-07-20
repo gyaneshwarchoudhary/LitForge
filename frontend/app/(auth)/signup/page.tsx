@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { TOKEN_COOKIE } from "@/lib/auth";
+
 
 const signupSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
@@ -29,6 +32,7 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
+  const router = useRouter();
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -49,16 +53,22 @@ export default function SignupPage() {
         payload
       );
 
-      console.log(response.data);
+      const token: string =
+        response.data?.access_token ||
+        response.data?.token ||
+        response.data;
+
+      // Store token in cookie (7-day expiry, SameSite=Lax)
+      const expires = new Date();
+      expires.setDate(expires.getDate() + 7);
+      document.cookie = `${TOKEN_COOKIE}=${token}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
 
       toast.success("Account created!", {
         description: "Welcome to LitForge. Your journey begins now.",
         icon: "🚀",
       });
 
-      // TODO:
-      // Save token
-      // Redirect user
+      router.push("/dashboard");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(
@@ -170,12 +180,12 @@ export default function SignupPage() {
           >
             <FieldGroup>
               <Controller
-                name="fullName"
+                name="username"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel
-                      htmlFor="fullName"
+                      htmlFor="username"
                       className="text-xs font-semibold text-[#94948E] uppercase tracking-wider"
                     >
                       Full Name
@@ -183,7 +193,7 @@ export default function SignupPage() {
 
                     <Input
                       {...field}
-                      id="fullName"
+                      id="username"
                       type="text"
                       placeholder="Alex"
                       aria-invalid={fieldState.invalid}
