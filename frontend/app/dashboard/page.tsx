@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 function Sidebar() {
   const navItems = [
     { icon: "grid_view", label: "Dashboard", href: "/dashboard", active: true },
-    { icon: "auto_stories", label: "My Library", href: "/dashboard", active: false },
+    { icon: "person", label: "Profile", href: "/dashboard/profile", active: false },
+    { icon: "auto_stories", label: "My Library", href: "/dashboard/library", active: false },
     { icon: "smart_toy", label: "AI Chat", href: "/dashboard/chat", active: false },
     { icon: "account_tree", label: "Knowledge Map", href: "/dashboard", active: false },
     { icon: "science", label: "Experiments", href: "/dashboard", active: false },
@@ -110,7 +111,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#0B0B0D]">
+    <div className="flex h-screen overflow-hidden bg-[#0B0B0D]">
       <Sidebar />
 
       {/* Main Content */}
