@@ -5,7 +5,6 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from app.core.database import SessionLocal
 from app.models.document_model import Document
 from app.services.pdf_extractor import extract_text_from_pdf
 from app.services.chunking_service import create_chunks
@@ -48,7 +47,6 @@ def save_document(
 def process_and_store_vectors(
     db: Session,
     document: Document,
-    file_bytes: bytes,
 ) -> Document:
     """Extract text → chunk → embed → store in Pinecone."""
     try:
@@ -57,6 +55,7 @@ def process_and_store_vectors(
 
         # 1. Extract text
         logger.info(f"Extracting text from document {document.id}...")
+        file_bytes = Path(document.filepath).read_bytes()
         extracted = extract_text_from_pdf(file_bytes)
         document.total_pages = extracted.total_pages
         db.commit()
@@ -64,7 +63,9 @@ def process_and_store_vectors(
         # 2. Chunk
         document.processing_status = "chunking"
         db.commit()
-        logger.info(f"Chunking document {document.id} ({extracted.total_pages} pages)...")
+        logger.info(
+            f"Chunking document {document.id} ({extracted.total_pages} pages)..."
+        )
         chunks = create_chunks(
             text=extracted.text,
             document_id=document.id,
@@ -93,7 +94,9 @@ def process_and_store_vectors(
         document.processing_status = "completed"
         db.commit()
         db.refresh(document)
-        logger.info(f"Document {document.id} done: {extracted.total_pages} pages, {total_upserted} vectors")
+        logger.info(
+            f"Document {document.id} done: {extracted.total_pages} pages, {total_upserted} vectors"
+        )
 
     except Exception as e:
         logger.error(f"Failed to process document {document.id}: {e}")
@@ -102,19 +105,6 @@ def process_and_store_vectors(
         raise
 
     return document
-
-
-def process_document_in_background(document_id: int, file_bytes: bytes) -> None:
-    """Run document vector processing in a standalone DB session."""
-    db = SessionLocal()
-    try:
-        document = db.query(Document).filter(Document.id == document_id).first()
-        if document is None:
-            logger.error(f"Document {document_id} not found for background processing")
-            return
-        process_and_store_vectors(db=db, document=document, file_bytes=file_bytes)
-    finally:
-        db.close()
 
 
 def get_user_documents(db: Session, user_id: int) -> list[Document]:

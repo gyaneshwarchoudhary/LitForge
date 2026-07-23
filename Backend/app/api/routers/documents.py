@@ -1,15 +1,12 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.dependecies import get_current_user
 from app.core.database import get_db
 from app.models.user_model import User
 from app.schema.document_schema import DocumentRead, DocumentUploadResponse
-from app.services.document_service import (
-    get_user_documents,
-    process_document_in_background,
-    save_document,
-)
+from app.services.document_service import get_user_documents, save_document
+from app.tasks.document_tasks import process_document_task
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -29,7 +26,6 @@ ALLOWED_CONTENT_TYPES = {"application/pdf"}
     summary="Upload a PDF document (1–50 MB)",
 )
 async def upload_document(
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -77,12 +73,8 @@ async def upload_document(
         content_type=file.content_type,
     )
 
-    # Step 2: Process asynchronously so the request returns immediately
-    background_tasks.add_task(
-        process_document_in_background,
-        document.id,
-        contents,
-    )
+    # Step 2: Queue Celery task for async processing (document_id only, no raw bytes)
+    process_document_task.delay(document.id)
 
     return DocumentUploadResponse(
         id=document.id,
@@ -93,7 +85,7 @@ async def upload_document(
         total_chunks=document.total_chunks,
         processing_status=document.processing_status,
         created_at=document.created_at,
-        message="File uploaded successfully. Vector processing started in background.",
+        message="File uploaded successfully. Vector processing queued.",
     )
 
 

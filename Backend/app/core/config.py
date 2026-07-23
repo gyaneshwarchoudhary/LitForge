@@ -34,5 +34,11 @@ class Settings(BaseSettings):
     CONVERSATION_MAX_TURNS: int = 6
     CONVERSATION_MAX_HISTORY_CHARS: int = 4000
 
+    # ── Redis / Celery ────────────────────────────────────────
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: int = 6379
+    CELERY_BROKER_URL: str = "redis://redis:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
+
 
 settings = Settings()
