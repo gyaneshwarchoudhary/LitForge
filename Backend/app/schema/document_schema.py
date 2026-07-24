@@ -33,3 +33,10 @@ class DocumentUploadResponse(BaseModel):
     processing_status: str
     created_at: datetime
     message: str = "File uploaded and processed successfully"
+
+
+class DocumentDeleteResponse(BaseModel):
+    """Response after a successful delete."""
+
+    id: int
+    message: str = "Document deleted successfully"
