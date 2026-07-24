@@ -3,12 +3,16 @@ import os
 import uuid
 from pathlib import Path
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.document_model import Document
 from app.services.pdf_extractor import extract_text_from_pdf
 from app.services.chunking_service import create_chunks
-from app.services.pinecone_service import upsert_chunks_to_pinecone
+from app.services.pinecone_service import (
+    delete_document_vectors,
+    upsert_chunks_to_pinecone,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -114,3 +118,33 @@ def get_user_documents(db: Session, user_id: int) -> list[Document]:
         .order_by(Document.created_at.desc())
         .all()
     )
+
+
+def delete_document(db: Session, document_id: int, user_id: int) -> None:
+    """Delete a document: Pinecone vectors, then the DB row, then the file on disk."""
+    document = db.query(Document).filter(Document.id == document_id).first()
+    if document is None or document.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found or does not belong to you.",
+        )
+
+    try:
+        delete_document_vectors(document_id)
+    except Exception as e:
+        logger.error(
+            f"Failed to delete Pinecone vectors for document {document_id}: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to delete document vectors. Document was not deleted.",
+        )
+
+    filepath = document.filepath
+    db.delete(document)
+    db.commit()
+
+    if filepath and os.path.exists(filepath):
+        os.remove(filepath)
+
+    logger.info(f"Deleted document {document_id} for user {user_id}")
