@@ -4,15 +4,23 @@ from sqlalchemy.orm import Session
 from app.api.dependecies import get_current_user
 from app.core.database import get_db
 from app.models.user_model import User
-from app.schema.document_schema import DocumentRead, DocumentUploadResponse
-from app.services.document_service import get_user_documents, save_document
+from app.schema.document_schema import (
+    DocumentDeleteResponse,
+    DocumentRead,
+    DocumentUploadResponse,
+)
+from app.services.document_service import (
+    delete_document,
+    get_user_documents,
+    save_document,
+)
 from app.tasks.document_tasks import process_document_task
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
 # ── Constants ─────────────────────────────────────────────────
-MIN_FILE_SIZE = 1 * 1024 * 1024      # 1 MB
-MAX_FILE_SIZE = 50 * 1024 * 1024     # 50 MB
+MIN_FILE_SIZE = 1 * 1024 * 1024  # 1 MB
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 ALLOWED_CONTENT_TYPES = {"application/pdf"}
 
 
@@ -103,3 +111,21 @@ def list_my_documents(
 ):
     """Return all PDF documents belonging to the authenticated user."""
     return get_user_documents(db, current_user.id)
+
+
+# ── Delete a document ─────────────────────────────────────────
+
+
+@router.delete(
+    "/{document_id}",
+    response_model=DocumentDeleteResponse,
+    summary="Delete a document (Pinecone vectors, DB row, and file on disk)",
+)
+def delete_document_endpoint(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a document owned by the current user, including its Pinecone vectors and file on disk."""
+    delete_document(db, document_id=document_id, user_id=current_user.id)
+    return DocumentDeleteResponse(id=document_id)
