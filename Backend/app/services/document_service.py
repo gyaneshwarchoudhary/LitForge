@@ -132,12 +132,12 @@ def delete_document(db: Session, document_id: int, user_id: int) -> None:
     try:
         delete_document_vectors(document_id)
     except Exception as e:
+        # Best-effort: a document that never finished embedding (or whose
+        # vectors are already gone) shouldn't block the user from deleting
+        # it. Log and continue so the DB row/file are always removed.
         logger.error(
-            f"Failed to delete Pinecone vectors for document {document_id}: {e}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Failed to delete document vectors. Document was not deleted.",
+            f"Failed to delete Pinecone vectors for document {document_id}, "
+            f"continuing with deletion anyway: {e}"
         )
 
     filepath = document.filepath

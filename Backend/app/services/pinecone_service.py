@@ -17,12 +17,15 @@ logger = logging.getLogger(__name__)
 
 EMBEDDING_MODEL = "gemini-embedding-2"
 EMBEDDING_DIMENSION = 768
-EMBED_BATCH_SIZE = 10         # texts per API call
+EMBED_BATCH_SIZE = 5          # texts per API call — kept small for free-tier quota
 PINECONE_BATCH_SIZE = 100
-MAX_RETRIES = 5
-# Free tier = 100 requests/min. Each text = 1 request.
-# 10 texts every 10 seconds = 60 texts/min → safely under limit.
-DELAY_BETWEEN_BATCHES = 10
+MAX_RETRIES = 4
+BACKOFF_BASE_SECONDS = 10
+MAX_BACKOFF_SECONDS = 30      # cap so a persistent 429 fails in ~1-2 min, not ~8 min
+# Free-tier embedding quotas are low. Batches are small and spaced out to
+# reduce 429s; the capped backoff below makes a real quota exhaustion fail
+# fast instead of retrying for minutes on a batch that will never succeed.
+DELAY_BETWEEN_BATCHES = 20
 
 # ── Singletons ────────────────────────────────────────────────
 
@@ -82,9 +85,11 @@ def _embed_batch_with_retry(client, texts: list[str]) -> list[list[float]]:
             return [e.values for e in result.embeddings]
         except Exception as e:
             if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                # Google says "retry in ~48s", so start at 15s and double
-                wait = (2 ** attempt) * 15  # 15, 30, 60, 120, 240
-                logger.warning(f"Rate limited (attempt {attempt + 1}/{MAX_RETRIES}). Waiting {wait}s...")
+                wait = min(BACKOFF_BASE_SECONDS * (2 ** attempt), MAX_BACKOFF_SECONDS)
+                logger.warning(
+                    f"Rate limited (attempt {attempt + 1}/{MAX_RETRIES}). "
+                    f"Waiting {wait}s... Google error: {e}"
+                )
                 time.sleep(wait)
             else:
                 raise
