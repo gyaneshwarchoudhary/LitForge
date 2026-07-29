@@ -6,6 +6,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { TOKEN_COOKIE } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import DashboardSidebar from "@/components/DashboardSidebar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -57,70 +58,6 @@ function bookEmoji(filename: string): string {
   return "📚";
 }
 
-// ── Sidebar ───────────────────────────────────────────────────────────────────
-
-function Sidebar() {
-  const navItems = [
-    { icon: "grid_view", label: "Dashboard", href: "/dashboard", active: false },
-    { icon: "person", label: "Profile", href: "/dashboard/profile", active: false },
-    { icon: "auto_stories", label: "My Library", href: "/dashboard/library", active: true },
-    { icon: "smart_toy", label: "AI Chat", href: "/dashboard/chat", active: false },
-    { icon: "account_tree", label: "Knowledge Map", href: "/dashboard", active: false },
-    { icon: "science", label: "Experiments", href: "/dashboard", active: false },
-    { icon: "edit_note", label: "Journal", href: "/dashboard", active: false },
-  ];
-
-  return (
-    <aside className="hidden lg:flex w-64 flex-col bg-[#0e0e10] border-r border-[#262626] min-h-screen py-6 px-4 flex-shrink-0">
-      <Link href="/" className="flex items-center gap-2 px-3 mb-8 group">
-        <span
-          className="material-symbols-outlined text-[#F59E0B] text-2xl group-hover:rotate-12 transition-transform duration-300"
-          style={{ fontVariationSettings: "'FILL' 1" }}
-        >
-          auto_stories
-        </span>
-        <span className="font-[family-name:var(--font-display)] text-xl font-bold text-[#F59E0B]">
-          LitForge
-        </span>
-      </Link>
-
-      <nav className="flex flex-col gap-1 flex-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              item.active
-                ? "bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20"
-                : "text-[#94948E] hover:text-[#F5F5F0] hover:bg-[#161618]"
-            }`}
-          >
-            <span className="material-symbols-outlined text-xl">{item.icon}</span>
-            {item.label}
-            {item.active && (
-              <span className="ml-auto w-1.5 h-1.5 bg-[#F59E0B] rounded-full" />
-            )}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="border-t border-[#262626] pt-4 mt-4">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#161618] transition-colors cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-            U
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[#F5F5F0] truncate">User</p>
-            <p className="text-xs text-[#94948E] truncate">Pro Plan</p>
-          </div>
-          <span className="material-symbols-outlined text-[#94948E] text-base">
-            more_vert
-          </span>
-        </div>
-      </div>
-    </aside>
-  );
-}
 
 // ── Status Badge ──────────────────────────────────────────────────────────────
 
@@ -154,9 +91,8 @@ function StatusBadge({ status }: { status: string }) {
       className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${cfg.classes}`}
     >
       <span
-        className={`material-symbols-outlined text-xs ${
-          status === "processing" ? "animate-spin" : ""
-        }`}
+        className={`material-symbols-outlined text-xs ${status === "processing" ? "animate-spin" : ""
+          }`}
       >
         {cfg.icon}
       </span>
@@ -165,62 +101,218 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-// ── Book Card ─────────────────────────────────────────────────────────────────
+// ── Delete Confirm Modal ──────────────────────────────────────────────────────
 
-function BookCard({ doc }: { doc: Document }) {
-  const title = doc.filename.replace(/\.pdf$/i, "");
+function DeleteConfirmModal({
+  title,
+  deleting,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  deleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  // Close on backdrop click
+  function handleBackdrop(e: React.MouseEvent<HTMLDivElement>) {
+    if (e.target === e.currentTarget) onCancel();
+  }
+
+  // Close on Escape key
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onCancel();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
 
   return (
-    <div className="glass-panel rounded-2xl p-5 flex flex-col gap-4 hover:border-[#F59E0B]/20 transition-all duration-300 group">
-      {/* Cover + title */}
-      <div className="flex items-start gap-4">
-        <div className="w-14 h-14 rounded-xl bg-[#2a2a2c] flex items-center justify-center text-3xl flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-          {bookEmoji(doc.filename)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#F5F5F0] leading-snug line-clamp-2 group-hover:text-[#F59E0B] transition-colors">
-            {title}
-          </p>
-          <p className="text-xs text-[#94948E] mt-1">{formatDate(doc.created_at)}</p>
-        </div>
-      </div>
-
-      {/* Meta */}
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-[#161618] rounded-lg py-2">
-          <p className="text-xs font-semibold text-[#F5F5F0]">
-            {doc.total_pages ?? "—"}
-          </p>
-          <p className="text-[10px] text-[#94948E] mt-0.5">Pages</p>
-        </div>
-        <div className="bg-[#161618] rounded-lg py-2">
-          <p className="text-xs font-semibold text-[#F5F5F0]">
-            {doc.total_chunks ?? "—"}
-          </p>
-          <p className="text-[10px] text-[#94948E] mt-0.5">Chunks</p>
-        </div>
-        <div className="bg-[#161618] rounded-lg py-2">
-          <p className="text-xs font-semibold text-[#F5F5F0]">
-            {formatBytes(doc.file_size)}
-          </p>
-          <p className="text-[10px] text-[#94948E] mt-0.5">Size</p>
-        </div>
-      </div>
-
-      {/* Status + action */}
-      <div className="flex items-center justify-between">
-        <StatusBadge status={doc.processing_status} />
-        {doc.processing_status === "completed" && (
-          <Link
-            href={`/dashboard/chat?docId=${doc.id}`}
-            className="flex items-center gap-1 text-xs text-[#94948E] hover:text-[#F59E0B] transition-colors"
+    <div
+      onClick={handleBackdrop}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-[#2a2a2c] bg-[#131315] p-6 flex flex-col gap-5 shadow-2xl"
+        style={{ animation: "modalIn 0.18s cubic-bezier(.4,0,.2,1) both" }}
+      >
+        {/* Icon */}
+        <div className="mx-auto w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+          <span
+            className="material-symbols-outlined text-red-400 text-2xl"
+            style={{ fontVariationSettings: "'FILL' 1" }}
           >
-            <span className="material-symbols-outlined text-sm">smart_toy</span>
-            Chat
-          </Link>
-        )}
+            delete_forever
+          </span>
+        </div>
+
+        {/* Text */}
+        <div className="text-center space-y-1.5">
+          <h3 className="text-base font-semibold text-[#F5F5F0]">
+            Delete document?
+          </h3>
+          <p className="text-sm text-[#94948E] leading-relaxed">
+            <span className="font-medium text-[#F5F5F0]">&ldquo;{title}&rdquo;</span>{" "}
+            will be permanently removed. This action cannot be undone.
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-[#94948E] bg-[#1c1c1e] border border-[#2a2a2c] hover:border-[#3a3a3e] hover:text-[#F5F5F0] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 active:bg-red-700 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {deleting ? (
+              <>
+                <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                Deleting…
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-sm">delete</span>
+                Delete
+              </>
+            )}
+          </button>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.94) translateY(8px); }
+          to   { opacity: 1; transform: scale(1)   translateY(0);    }
+        }
+      `}</style>
     </div>
+  );
+}
+
+// ── Book Card ─────────────────────────────────────────────────────────────────
+
+function BookCard({
+  doc,
+  onDelete,
+}: {
+  doc: Document;
+  onDelete: (id: number) => void;
+}) {
+  const title = doc.filename.replace(/\.pdf$/i, "");
+  const [showModal, setShowModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    const token = getCookie(TOKEN_COOKIE);
+    if (!token) {
+      toast.error("You are not authenticated.");
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/documents/${doc.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`"${title}" deleted.`, { icon: "🗑️" });
+      setShowModal(false);
+      onDelete(doc.id);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.detail ||
+          error.response?.data?.message ||
+          "Failed to delete document."
+        );
+      } else {
+        toast.error("Something went wrong.");
+      }
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <>
+      {showModal && (
+        <DeleteConfirmModal
+          title={title}
+          deleting={deleting}
+          onCancel={() => !deleting && setShowModal(false)}
+          onConfirm={confirmDelete}
+        />
+      )}
+
+      <div className="glass-panel rounded-2xl p-5 flex flex-col gap-4 hover:border-[#F59E0B]/20 transition-all duration-300 group">
+        {/* Cover + title */}
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-xl bg-[#2a2a2c] flex items-center justify-center text-3xl flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+            {bookEmoji(doc.filename)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-[#F5F5F0] leading-snug line-clamp-2 group-hover:text-[#F59E0B] transition-colors">
+              {title}
+            </p>
+            <p className="text-xs text-[#94948E] mt-1">{formatDate(doc.created_at)}</p>
+          </div>
+
+          {/* Delete button */}
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowModal(true); }}
+            title="Delete document"
+            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-7 h-7 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 hover:border-red-500/40 flex-shrink-0"
+          >
+            <span className="material-symbols-outlined text-sm">delete</span>
+          </button>
+        </div>
+
+        {/* Meta */}
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-[#161618] rounded-lg py-2">
+            <p className="text-xs font-semibold text-[#F5F5F0]">
+              {doc.total_pages ?? "—"}
+            </p>
+            <p className="text-[10px] text-[#94948E] mt-0.5">Pages</p>
+          </div>
+          <div className="bg-[#161618] rounded-lg py-2">
+            <p className="text-xs font-semibold text-[#F5F5F0]">
+              {doc.total_chunks ?? "—"}
+            </p>
+            <p className="text-[10px] text-[#94948E] mt-0.5">Chunks</p>
+          </div>
+          <div className="bg-[#161618] rounded-lg py-2">
+            <p className="text-xs font-semibold text-[#F5F5F0]">
+              {formatBytes(doc.file_size)}
+            </p>
+            <p className="text-[10px] text-[#94948E] mt-0.5">Size</p>
+          </div>
+        </div>
+
+        {/* Status + action */}
+        <div className="flex items-center justify-between">
+          <StatusBadge status={doc.processing_status} />
+          {doc.processing_status === "completed" && (
+            <Link
+              href={`/dashboard/chat?docId=${doc.id}`}
+              className="flex items-center gap-1 text-xs text-[#94948E] hover:text-[#F59E0B] transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">smart_toy</span>
+              Chat
+            </Link>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -272,8 +364,8 @@ function UploadZone({
       if (axios.isAxiosError(error)) {
         toast.error(
           error.response?.data?.detail ||
-            error.response?.data?.message ||
-            "Upload failed."
+          error.response?.data?.message ||
+          "Upload failed."
         );
       } else {
         toast.error("Something went wrong.");
@@ -398,12 +490,16 @@ export default function LibraryPage() {
     setDocs((prev) => [newDoc, ...prev]);
   }
 
+  function handleDelete(id: number) {
+    setDocs((prev) => prev.filter((d) => d.id !== id));
+  }
+
   const completed = docs.filter((d) => d.processing_status === "completed").length;
   const processing = docs.filter((d) => d.processing_status === "processing").length;
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#0B0B0D]">
-      <Sidebar />
+      <DashboardSidebar />
 
       <main className="flex-1 overflow-auto">
         {/* Top bar */}
@@ -426,9 +522,8 @@ export default function LibraryPage() {
             className="w-9 h-9 rounded-xl bg-[#161618] border border-[#262626] flex items-center justify-center hover:border-[#F59E0B]/40 hover:text-[#F59E0B] text-[#94948E] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span
-              className={`material-symbols-outlined text-lg ${
-                refreshing ? "animate-spin" : ""
-              }`}
+              className={`material-symbols-outlined text-lg ${refreshing ? "animate-spin" : ""
+                }`}
             >
               refresh
             </span>
@@ -473,7 +568,7 @@ export default function LibraryPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {docs.map((doc) => (
-                  <BookCard key={doc.id} doc={doc} />
+                  <BookCard key={doc.id} doc={doc} onDelete={handleDelete} />
                 ))}
               </div>
             </>

@@ -88,9 +88,7 @@ function Sidebar() {
     { icon: "person", label: "Profile", href: "/dashboard/profile", active: true },
     { icon: "auto_stories", label: "My Library", href: "/dashboard", active: false },
     { icon: "smart_toy", label: "AI Chat", href: "/dashboard/chat", active: false },
-    { icon: "account_tree", label: "Knowledge Map", href: "/dashboard", active: false },
-    { icon: "science", label: "Experiments", href: "/dashboard", active: false },
-    { icon: "edit_note", label: "Journal", href: "/dashboard", active: false },
+
   ];
 
   return (
@@ -112,11 +110,10 @@ function Sidebar() {
           <Link
             key={item.label}
             href={item.href}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              item.active
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${item.active
                 ? "bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20"
                 : "text-[#94948E] hover:text-[#F5F5F0] hover:bg-[#161618]"
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-xl">{item.icon}</span>
             {item.label}
@@ -292,8 +289,8 @@ export default function ProfilePage() {
       if (axios.isAxiosError(error)) {
         toast.error(
           error.response?.data?.detail ||
-            error.response?.data?.message ||
-            "Failed to save profile."
+          error.response?.data?.message ||
+          "Failed to save profile."
         );
       } else {
         toast.error("Something went wrong.");
@@ -477,8 +474,8 @@ export default function ProfilePage() {
                 {isSubmitting
                   ? "Saving..."
                   : hasProfile
-                  ? "Update Profile →"
-                  : "Create Profile →"}
+                    ? "Update Profile →"
+                    : "Create Profile →"}
               </Button>
             </form>
           </div>
